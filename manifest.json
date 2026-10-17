@@ -1,0 +1,13 @@
+{
+  "id": "./",
+  "name": "덕트 직경·상용 규격 계산기",
+  "short_name": "덕트규격",
+  "description": "계산 직경에 맞는 상용 원형 덕트 규격 추천",
+  "lang": "ko-KR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f5f9",
+  "theme_color": "#075985"
+}

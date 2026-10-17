@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#075985">
+<meta name="description" content="계산 직경을 기준으로 상용 원형 덕트 규격을 추천합니다.">
+<link rel="manifest" href="./manifest.json">
+<title>덕트 직경·상용 규격 계산기</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:#172033;background:#f1f5f9}
+*{box-sizing:border-box}body{margin:0}
+header{background:linear-gradient(135deg,#075985,#0f766e);color:#fff;padding:25px 18px 35px}
+h1{font-size:23px;margin:0 0 7px}header p{margin:0;font-size:14px;opacity:.92}
+main{max-width:760px;margin:-18px auto 25px;padding:0 13px}
+.card{background:#fff;border-radius:17px;padding:19px;margin:14px 0;box-shadow:0 5px 20px #0f172a10}
+h2{font-size:18px;margin:0 0 15px}
+label{display:block;font-size:14px;font-weight:750;margin:13px 0 7px}
+input,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:11px;font:inherit;font-size:16px;background:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.actions{display:flex;gap:10px;margin-top:17px}
+button{flex:1;border:0;border-radius:11px;padding:13px;font:inherit;font-weight:800}
+.primary{background:#075985;color:#fff}.secondary{background:#e2e8f0;color:#172033}
+.hint{font-size:12px;color:#64748b;line-height:1.6;margin-top:9px}
+.result{background:#ecfeff;border:1px solid #a5f3fc;border-radius:13px;padding:16px}
+.big{font-size:30px;font-weight:900;color:#075985;margin:8px 0}
+.badge{display:inline-block;background:#cffafe;color:#155e75;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+th,td{padding:10px 8px;text-align:right;border-bottom:1px solid #e2e8f0}
+th:first-child,td:first-child{text-align:left}th{background:#f8fafc}
+.selected{background:#ecfeff;font-weight:800}
+.formula{background:#f8fafc;padding:13px;border-radius:11px;font-size:14px;line-height:1.9;margin-top:13px}
+footer{text-align:center;color:#64748b;font-size:12px;padding:0 15px 24px}
+@media(max-width:480px){.grid{grid-template-columns:1fr}.big{font-size:26px}.card{padding:16px}table{font-size:12px}th,td{padding:9px 5px}}
+</style>
+</head>
+<body>
+<header>
+<h1>덕트 직경·상용 규격 계산기</h1>
+<p>계산 직경을 입력하면 같거나 큰 상용 원형 덕트 규격을 추천합니다.</p>
+</header>
+<main>
+<section class="card">
+<h2>① 계산 조건 입력</h2>
+<label for="diameter">계산 직경 (mm)</label>
+<input id="diameter" type="number" min="1" step="any" value="213" inputmode="decimal">
+<div class="grid">
+<div>
+<label for="mode">규격 선정 방식</label>
+<select id="mode">
+<option value="up">계산 직경 이상에서 가장 작은 규격</option>
+<option value="nearest">가장 가까운 규격</option>
+</select>
+</div>
+<div>
+<label for="flow">필요 환기량 (선택, m³/min)</label>
+<input id="flow" type="number" min="0" step="any" placeholder="예: 12" inputmode="decimal">
+</div>
+</div>
+<div class="actions">
+<button class="primary" id="calculate">상용 규격 계산</button>
+<button class="secondary" id="reset">초기화</button>
+</div>
+<div class="hint">상용 규격 목록은 일반적으로 사용되는 원형 덕트 내경 후보값 예시입니다. 실제 납품 규격은 제조사, 재질, 연결 방식 및 현장 기준에 따라 다를 수 있습니다.</div>
+</section>
+<section class="card" aria-live="polite">
+<h2>② 추천 결과</h2>
+<div class="result">
+<span class="badge">추천 상용 규격</span>
+<div class="big" id="selected">—</div>
+<div id="summary">계산 직경을 입력한 뒤 계산하세요.</div>
+</div>
+<table>
+<thead><tr><th>구분</th><th>직경 (mm)</th><th>계산 직경 대비</th><th>환기량 입력 시 유속 (m/s)</th></tr></thead>
+<tbody id="rows"><tr><td colspan="4" style="text-align:center">결과가 여기에 표시됩니다.</td></tr></tbody>
+</table>
+<div class="hint">유속은 원형 덕트 내경 기준 평균 유속이며, 환기량을 입력하지 않으면 표시되지 않습니다.</div>
+</section>
+<section class="card">
+<h2>③ 계산 원리</h2>
+<div class="formula">
+<b>상용 규격 선정</b><br>
+① 계산 직경 이상 방식: 계산 직경보다 같거나 큰 규격 중 가장 작은 값 선택<br>
+② 가장 가까운 규격 방식: 계산 직경과 차이가 가장 작은 규격 선택<br><br>
+<b>환기량 입력 시 실제 유속</b><br>
+V = (Q ÷ 60) ÷ A<br>
+A = πD² ÷ 4<br>
+Q: 환기량(m³/min), D: 선택한 덕트 내경(m), A: 단면적(m²), V: 유속(m/s)
+</div>
+</section>
+</main>
+<footer>덕트 직경·상용 규격 계산기 · 기초 설계 검토용</footer>
+<script>
+const sizes=[50,65,75,80,100,125,150,160,175,180,200,225,250,275,280,300,315,350,355,375,400,450,475,500,550,560,600,630,650,700,710,750,800,850,900,950,1000,1050,1100,1200,1250,1300,1400,1500];
+function calculate(){
+ const raw=Number(document.getElementById('diameter').value);
+ const mode=document.getElementById('mode').value;
+ const qraw=document.getElementById('flow').value.trim();
+ const q=qraw===''?null:Number(qraw);
+ const selected=document.getElementById('selected'), summary=document.getElementById('summary'), rows=document.getElementById('rows');
+ if(!Number.isFinite(raw)||raw<=0||(q!==null&&(!Number.isFinite(q)||q<0))){
+  selected.textContent='입력 확인';summary.textContent='직경은 0보다 큰 숫자로 입력하세요. 환기량은 비워 두거나 0 이상의 숫자를 입력하세요.';
+  rows.innerHTML='<tr><td colspan="4" style="text-align:center">입력값을 확인하세요.</td></tr>';return;
+ }
+ let pick;
+ if(mode==='up') pick=sizes.find(s=>s>=raw) ?? null;
+ else pick=sizes.reduce((a,b)=>Math.abs(b-raw)<Math.abs(a-raw)?b:a,sizes[0]);
+ if(pick===null){
+  selected.textContent='규격 범위 초과';summary.textContent='목록에 계산 직경 이상인 규격이 없습니다. 제조사 규격을 확인하거나 목록을 확장하세요.';
+ }else{
+  selected.textContent=pick+' mm';
+  const delta=pick-raw;
+  summary.textContent='입력 직경 '+raw.toFixed(3)+' mm · 차이 '+(delta>=0?'+':'')+delta.toFixed(3)+' mm · '+(mode==='up'?'계산 직경 이상 규격':'가장 가까운 규격');
+ }
+ const candidates=pick===null?sizes.slice(-5):sizes.filter(s=>Math.abs(s-raw)<=Math.max(100,raw*0.25)||s===pick).slice(0,9);
+ rows.innerHTML='';
+ candidates.forEach(s=>{
+  const tr=document.createElement('tr');
+  if(s===pick)tr.className='selected';
+  let vel='—';
+  if(q!==null&&q>0){const d=s/1000,a=Math.PI*d*d/4;vel=((q/60)/a).toFixed(3);}
+  const diff=s-raw;
+  tr.innerHTML='<td>'+(s===pick?'추천':'후보')+'</td><td>'+s+'</td><td>'+(diff>=0?'+':'')+diff.toFixed(1)+' mm</td><td>'+vel+'</td>';
+  rows.appendChild(tr);
+ });
+}
+function resetForm(){document.getElementById('diameter').value='213';document.getElementById('mode').value='up';document.getElementById('flow').value='';calculate();}
+document.getElementById('calculate').addEventListener('click',calculate);
+document.getElementById('reset').addEventListener('click',resetForm);
+['diameter','mode','flow'].forEach(id=>document.getElementById(id).addEventListener('change',calculate));
+calculate();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+</script>
+</body>
+</html>
